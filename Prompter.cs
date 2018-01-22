@@ -39,39 +39,5 @@ namespace bships
             }
 
         }
-
-        // public static int PromptDeploy(Board board)
-        // {
-        //     Console.WriteLine("Where do you wish us to deploy admiral?");
-
-        //     int coord = PromptCoord();
-
-        //     if (board.IsSymbol(coord, '.'))
-        //     {
-        //         return coord;
-        //     }
-        //     else
-        //     {
-        //         Console.WriteLine("This tile is occupied. Choose another.");
-        //         return PromptDeploy(board);
-        //     }
-        // }
-
-        // public static int PromptFire(Board board)
-        // {
-        //     Console.WriteLine("What coord to bombard admiral?");
-
-        //     int coord = PromptCoord();
-
-        //     if (board.IsSymbol(coord, '$') || board.IsSymbol(coord, '.'))
-        //     {
-        //         return coord;
-        //     }
-        //     else
-        //     {
-        //         Console.WriteLine("This coordinate was already shot at. Choose another.");
-        //         return PromptFire(board);
-        //     }
-        // }
     }
 }

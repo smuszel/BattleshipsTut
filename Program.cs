@@ -61,10 +61,10 @@ namespace bships
             player1.DisplayOpponent += board2.OnDisplay;
             player1.DisplayOwn += board1.OnDisplay;
 
-            player2.Shoot += board1.OnChangeState;
-            player2.ShipSubmit += board2.OnChangeState;
-            player1.Shoot += board2.OnChangeState;
-            player1.ShipSubmit += board1.OnChangeState;
+            player2.Fire += board1.OnChangeState;
+            player2.Deploy += board2.OnChangeState;
+            player1.Fire += board2.OnChangeState;
+            player1.Deploy += board1.OnChangeState;
 
             board1.BoardDeath += player2.OnOpponentKill;
             board2.BoardDeath += player1.OnOpponentKill;

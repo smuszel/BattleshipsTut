@@ -25,12 +25,12 @@ namespace bships
             return this.core[coord] == symbol;
         }
 
-        private void AssertSymbolValidity(int coord, char symbol)
+        private bool IsCoordValidForSymbol(int coord, char symbol)
         {
-            if (IsSymbol(coord, symbol) || IsSymbol(coord, GlobVars.symMiss)) 
-            {
-                throw new Exception();
-            }
+            bool targetedSame = IsSymbol(coord, symbol);
+            bool targetedMiss = IsSymbol(coord, symbol);
+            return !(targetedSame || targetedMiss);
+
         }
 
         private void CheckIfBoardDead()
@@ -52,11 +52,18 @@ namespace bships
         //subscriber
         public void OnChangeState(object source, MyEventArgs args)
         {
-            AssertSymbolValidity(args.coord, args.symbol);
-            ChangeIfMiss(args.coord, ref args.symbol);
+            if (IsCoordValidForSymbol(args.coord, args.symbol))
+            {
+                args.cancelled = false;
+                ChangeIfMiss(args.coord, ref args.symbol);
 
-            this.core[args.coord] = args.symbol;
-            CheckIfBoardDead();
+                this.core[args.coord] = args.symbol;
+                CheckIfBoardDead();
+            }
+            else 
+            {
+                args.cancelled = true;
+            }
 
         }
 
@@ -89,7 +96,7 @@ namespace bships
         // publisher
         protected virtual void OnBoardDeath()
         {
-            BoardDeath(this, MyEventArgs.empty);
+            BoardDeath(this, new MyEventArgs());
         }
     }
 }
