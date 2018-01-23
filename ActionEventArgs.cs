@@ -2,23 +2,17 @@ using System;
 
 namespace bships
 {
-    public class MyEventArgs : EventArgs 
+    public class ActionEventArgs : EventArgs 
     {
-        public bool mask;
-
         public int coord;
         public char symbol;
         public bool cancelled = true;
 
-        public MyEventArgs(char symbol)
+        public ActionEventArgs(char symbol)
         {
             this.symbol = symbol;
         }
         
-        public MyEventArgs()
-        {
-
-        }
     }
     
 }

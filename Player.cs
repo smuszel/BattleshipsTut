@@ -5,15 +5,14 @@ namespace bships
     public class Player 
     {
         public string name;
-        public MyEventArgs args;
 
-        public delegate void OnShootHandler(object source, MyEventArgs args);
+        public delegate void OnShootHandler(Player source, ActionEventArgs args);
         public event OnShootHandler Fire;
 
-        public delegate void OnShipSubmitHandler(object source, MyEventArgs args);
+        public delegate void OnShipSubmitHandler(Player source, ActionEventArgs args);
         public event OnShipSubmitHandler Deploy;
 
-        public delegate void OnDisplayHandler(Player source, MyEventArgs args);
+        public delegate void OnDisplayHandler(bool mask);
         public event OnDisplayHandler DisplayOwn;
         public event OnDisplayHandler DisplayOpponent;
 
@@ -25,13 +24,13 @@ namespace bships
 
         public void Deployment()
         {
-            for (int i=0; i<GlobVars.numOfShips; i++)
+            for (int i=0; i<Constants.numOfShips; i++)
             {
                 Console.WriteLine("This is our board admiral " + this.name);
                 OnDisplayOwn();
                 Console.WriteLine("What coord to deploy admiral?");                
-                OnActionDeclared(new MyEventArgs(GlobVars.symShip));
-                // NotifyActionCompleted(GlobVars.symShip);
+                OnActionDeclared(new ActionEventArgs(Constants.symShip));
+                // NotifyActionCompleted(Constants.symShip);
                 Console.Clear();
             }
 
@@ -49,50 +48,34 @@ namespace bships
             OnDisplayOpponent();
             Console.WriteLine("What coord to bombard admiral?");
 
-            var args = new MyEventArgs(GlobVars.symHit);
+            var args = new ActionEventArgs(Constants.symHit);
             OnActionDeclared(args);
             Console.Clear();
             OnDisplayOpponent();
             NotifyActionCompleted(args.symbol);
-            //Console.WriteLine("Admiral! Our bombardment round has finished.");
             Console.ReadLine();
-        }
-
-        //subscriber
-        public void OnOpponentKill(Board source, EventArgs args)
-        {
-            Console.Clear();
-            OnDisplayOpponent();
-            Console.WriteLine("Player " + this.name + " won the match!");
-            Console.ReadLine();
-            System.Environment.Exit(1);
         }
 
         private void NotifyActionCompleted(char symbol)
         {
             switch (symbol)
             {
-                case GlobVars.symMiss:
+                case Constants.symMiss:
                     Console.WriteLine("Massive barrage missed the target.");
                     break;
 
-                case GlobVars.symHit:
+                case Constants.symHit:
                     Console.WriteLine("Spang on the target!");
                     break;
                 
-                // case GlobVars.symShip:
+                // case Constants.symShip:
                 //     Console.WriteLine("Ship deployment succeded");
                 //     break;
             }
         }
 
-        private void NotifyActionCancelled()
-        {
-            Console.WriteLine("Cant select used coord admiral. Try another one.");
-        }
-
         // publisher
-        protected virtual void OnActionDeclared(MyEventArgs args)
+        protected virtual void OnActionDeclared(ActionEventArgs args)
         {
             while (true)
             {
@@ -100,22 +83,19 @@ namespace bships
 
                 switch (args.symbol)
                 {
-                    case GlobVars.symHit:
-                        System.Console.WriteLine("A");  
+                    case Constants.symHit:
                         Fire(this, args); 
                         break;
-                    case GlobVars.symShip:
-                        System.Console.WriteLine("B");  
+                    case Constants.symShip:  
                         Deploy(this, args); 
                         break;
-                    default:
-                        System.Console.WriteLine("BC");  
+                    default:  
                         break;
                 }
 
                 if (args.cancelled) 
                 {
-                    NotifyActionCancelled();
+                    Console.WriteLine("Cant select used coord admiral. Try another one.");
                 }
                 else 
                 {
@@ -126,16 +106,11 @@ namespace bships
 
         protected virtual void OnDisplayOwn()
         {
-            var args = new MyEventArgs();
-            args.mask = false;
-            DisplayOwn(this, args);
+            DisplayOwn(false);
         }
-
         protected virtual void OnDisplayOpponent()
         {
-            var args = new MyEventArgs();
-            args.mask = true;
-            DisplayOpponent(this, args);
+            DisplayOpponent(true);
         }
 
     }

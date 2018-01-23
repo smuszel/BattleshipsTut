@@ -9,7 +9,7 @@ namespace bships
         {
             (int X, int Y) = (Int32.Parse(rawXY[0]), Int32.Parse(rawXY[1]));
             
-            if (X >= GlobVars.boardSize || Y >= GlobVars.boardSize)
+            if (X >= Constants.boardSize || Y >= Constants.boardSize)
             {
                 throw new ArgumentException();
             }
@@ -18,7 +18,7 @@ namespace bships
                 throw new ArgumentException();
             }
 
-            return X + Y*GlobVars.boardSize;
+            return X + Y*Constants.boardSize;
         }
 
         public static int PromptCoord()

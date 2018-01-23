@@ -6,17 +6,13 @@ namespace bships
     public class Board
     {
         private char[] core;
-        public delegate void OnBoardDeathHandler(Board source, MyEventArgs args);
-        public event OnBoardDeathHandler BoardDeath; 
-        public MyEventArgs args;
 
         public Board()
         {
-            this.args = new MyEventArgs();
-            this.core = new char[GlobVars.boardSize2];
+            this.core = new char[Constants.boardSize2];
             for (int i=0; i<this.core.Length; i++)
             {
-                this.core[i] = GlobVars.symVacant;
+                this.core[i] = Constants.symVacant;
             }
         }
 
@@ -33,24 +29,29 @@ namespace bships
 
         }
 
-        private void CheckIfBoardDead()
-        {
-            if (this.core.All(item => item != GlobVars.symShip)) // && this.core.Any(item => item == 'X')
-            {
-                OnBoardDeath();
-            }
-        }
 
         private void ChangeIfMiss(int coord, ref char symbol)
         {
-            if (symbol == GlobVars.symHit && IsSymbol(coord, GlobVars.symVacant))
+            if (symbol == Constants.symHit && IsSymbol(coord, Constants.symVacant))
             {
-                symbol = GlobVars.symMiss;
+                symbol = Constants.symMiss;
+            }
+        }
+
+        private void CheckIfBoardDead(Player opponent)
+        {
+            if (this.core.All(item => item != Constants.symShip)) // && this.core.Any(item => item == 'X')
+            {
+                Console.Clear();
+                OnDisplay(true);
+                Console.WriteLine("Player " + opponent.name + " won the match!");
+                Console.ReadLine();
+                System.Environment.Exit(1);
             }
         }
 
         //subscriber
-        public void OnChangeState(object source, MyEventArgs args)
+        public void OnChangeState(Player source, ActionEventArgs args)
         {
             if (IsCoordValidForSymbol(args.coord, args.symbol))
             {
@@ -58,27 +59,26 @@ namespace bships
                 ChangeIfMiss(args.coord, ref args.symbol);
 
                 this.core[args.coord] = args.symbol;
-                CheckIfBoardDead();
+                CheckIfBoardDead(source);
             }
             else 
             {
                 args.cancelled = true;
             }
-
         }
 
-        public void OnDisplay(object source, MyEventArgs args)
+        public void OnDisplay(bool mask)
         {
-            for (int i=0; i<GlobVars.boardSize2; i++)
+            for (int i=0; i<Constants.boardSize2; i++)
             {
-                if (i%GlobVars.boardSize == 0 && i !=0)
+                if (i%Constants.boardSize == 0 && i !=0)
                 {
                     Console.WriteLine('\n');
                 }
 
-                if (args.mask && IsSymbol(i, GlobVars.symShip))
+                if (mask && IsSymbol(i, Constants.symShip))
                 {
-                    Console.Write(GlobVars.symVacant.ToString() + " ");
+                    Console.Write(Constants.symVacant.ToString() + " ");
                 }
 
                 else 
@@ -86,17 +86,11 @@ namespace bships
                     Console.Write(this.core[i] + " ");
                 }
 
-                if (i==GlobVars.boardSize2-1)
+                if (i==Constants.boardSize2-1)
                 {
                     Console.WriteLine("\n\n\n");
                 }
             }
-        }
-
-        // publisher
-        protected virtual void OnBoardDeath()
-        {
-            BoardDeath(this, new MyEventArgs());
         }
     }
 }

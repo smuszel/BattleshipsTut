@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace bships
 {
-    public static class GlobVars
+    public static class Constants
     {
         public const int boardSize = 4;
         public const int boardSize2 = 16;
@@ -32,9 +32,9 @@ namespace bships
         static void DeploymentPhase(Player p1, Player p2)
         {
             p1.Deployment();
-            Transition("Make ready " + GlobVars.p2Name);
+            Transition("Make ready " + Constants.p2Name);
             p2.Deployment();
-            Transition("Firing phase. Player " + GlobVars.p1Name + " starting");
+            Transition("Firing phase. Player " + Constants.p1Name + " starting");
         }
 
         static void ShootingPhase(Player p1, Player p2)
@@ -51,8 +51,8 @@ namespace bships
 
         static void Main(string[] ar)
         {
-            Player player1 = new Player(GlobVars.p1Name);
-            Player player2 = new Player(GlobVars.p2Name);
+            Player player1 = new Player(Constants.p1Name);
+            Player player2 = new Player(Constants.p2Name);
             Board board1 = new Board();
             Board board2 = new Board();
 
@@ -65,9 +65,6 @@ namespace bships
             player2.Deploy += board2.OnChangeState;
             player1.Fire += board2.OnChangeState;
             player1.Deploy += board1.OnChangeState;
-
-            board1.BoardDeath += player2.OnOpponentKill;
-            board2.BoardDeath += player1.OnOpponentKill;
 
             DeploymentPhase(player1, player2);
             ShootingPhase(player1, player2);
