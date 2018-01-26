@@ -1,43 +1,45 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace bships
 {
    public static class Prompter
     {
-
-        private static int ParseRawCoord(string[] rawXY)
-        {
-            (int X, int Y) = (Int32.Parse(rawXY[0]), Int32.Parse(rawXY[1]));
-            
-            if (X >= Constants.boardSize || Y >= Constants.boardSize)
-            {
-                throw new ArgumentException();
-            }
-            else if (rawXY.Length !=2)
-            {
-                throw new ArgumentException();
-            }
-
-            return X + Y*Constants.boardSize;
-        }
-
         public static int PromptCoord()
         {
-            try
+            string rawInput = Console.ReadLine();
+            string[] rawXY;
+            int X = -1, Y = -1;
+
+            Regex regex = new Regex(@"\d+ \d+");
+            Match match = regex.Match(rawInput);
+            
+            if (match.Success)
             {
-                return ParseRawCoord(Console.ReadLine().Split(' '));
+                rawXY =  match.Value.Split(" ");
+                (X, Y) = (Int32.Parse(rawXY[0]), Int32.Parse(rawXY[1]));
             }
-            catch (ArgumentException)
+            else
             {
-                Console.WriteLine("Coordinate out of bounds.");
-                return PromptCoord();                
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("I only understand coordinates in format 'x y' admiral.");
+                Console.WriteLine("Input not parsable, try passing two integers (\\d \\d)");
                 return PromptCoord();
             }
 
+            if (Y < Constants.boardSize || X < Constants.boardSize)
+            {
+                return X + Y*Constants.boardSize;
+            }
+            else
+            {
+                Console.WriteLine("Coordinate out of bounds");
+                return PromptCoord();
+            }
         }
+
+        // public static int Test()
+        // {
+        //     if (true) {return 0;}
+        //     else {return 1;}
+        // }
     }
 }

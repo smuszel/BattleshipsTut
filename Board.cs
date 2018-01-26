@@ -24,9 +24,8 @@ namespace bships
         private bool IsCoordValidForSymbol(int coord, char symbol)
         {
             bool targetedSame = IsSymbol(coord, symbol);
-            bool targetedMiss = IsSymbol(coord, symbol);
+            bool targetedMiss = IsSymbol(coord, Constants.symMiss);
             return !(targetedSame || targetedMiss);
-
         }
 
 
