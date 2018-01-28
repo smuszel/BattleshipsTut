@@ -1,26 +1,49 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace bships
 {
-    public static class Constants
+    public static class Config
     {
-        public const int boardSize = 4;
-        public const int boardSize2 = 16;
-        public const int numOfShips = 2;
+        public static readonly int boardSize = 4;
+        public static readonly int boardSize2 = 16;
+        public static readonly int[] numberOfShipTypes = new int[] {2};
 
-        public const string p1Name = "A";
-        public const string p2Name = "B";
+        public static readonly  string p1Name = "A";
+        public static readonly  string p2Name = "B";
+        public const char symbolMiss = ' ';
+        public const char symbolHit = 'X';
+        public const char symbolShip = '$';
+        public const char symbolVacant = '.';
 
-        public const char symMiss = ' ';
-        public const char symHit = 'X';
-        public const char symShip = '$';
-        public const char symVacant = '.';
+        public static (bool, char) SymbolChangingRules(char targetSymbol, char proposedSymbol)
+        {
+            switch (proposedSymbol)
+            {
+                case symbolShip:
+                    if (targetSymbol == symbolVacant) {return (true, symbolShip);}
+                    else return (false, symbolShip);
+
+                case symbolHit:
+                    if (targetSymbol == symbolVacant) return (true, symbolMiss);
+                    else if (targetSymbol == symbolShip) return (true, symbolHit);
+                    else return (false, symbolShip);
+            }
+            throw new Exception();
+        }
     }
 
-    class Program
+    public static class Program
     {
-
+        public static bool TryModifyTile(ref char targetTile, char targetSymbol)
+        {
+            (bool valid, char newSymbol) = Config.SymbolChangingRules(targetTile, targetSymbol);
+            
+            if (!valid) return false;
+            targetTile = newSymbol;
+            return true;
+        }
         static void Transition(string msg)
         {
             Console.Clear();
@@ -28,46 +51,60 @@ namespace bships
             Console.ReadLine();
             Console.Clear();
         }
-
-        static void DeploymentPhase(Player p1, Player p2)
-        {
-            p1.Deployment();
-            Transition("Make ready " + Constants.p2Name);
-            p2.Deployment();
-            Transition("Firing phase. Player " + Constants.p1Name + " starting");
+        static void Win(Player winner, char[] board)
+        {                    
+            Console.Clear();
+            Core.DisplayBoard(board);
+            Console.WriteLine("Player " + winner.name + " won the match!");
+            Console.ReadLine();
+            System.Environment.Exit(1);
         }
-
-        static void ShootingPhase(Player p1, Player p2)
-        {
-            Player[] players = new Player[] {p1, p2};
-
-            while (true)
-            {
-                players[0].Bombardment();
-                Array.Reverse(players);
-                Transition("Make ready");        
-            }
-        }
-
         static void Main(string[] ar)
         {
-            Player player1 = new Player(Constants.p1Name);
-            Player player2 = new Player(Constants.p2Name);
-            Board board1 = new Board();
-            Board board2 = new Board();
+            Player[] players = new Player[] 
+            {
+                new Player(Config.p1Name), 
+                new Player(Config.p2Name)
+            };
 
-            player2.DisplayOpponent += board1.OnDisplay;
-            player2.DisplayOwn += board2.OnDisplay;
-            player1.DisplayOpponent += board2.OnDisplay;
-            player1.DisplayOwn += board1.OnDisplay;
+            char[][] boards = new char[][] 
+            {
+                Core.GenerateBoard(Config.boardSize2, Config.symbolVacant), 
+                Core.GenerateBoard(Config.boardSize2, Config.symbolVacant)
+            };
 
-            player2.Fire += board1.OnChangeState;
-            player2.Deploy += board2.OnChangeState;
-            player1.Fire += board2.OnChangeState;
-            player1.Deploy += board1.OnChangeState;
+            #region DeploymentPhase
+            foreach (int numberOfShip in Config.numberOfShipTypes)
+            {
+                players[0].Deploy(boards[0]);
+                players[0].Deploy(boards[0]);
+            }
 
-            DeploymentPhase(player1, player2);
-            ShootingPhase(player1, player2);
+            Transition("Make ready " + players[1].name);
+            foreach (int numberOfShip in Config.numberOfShipTypes)
+            {
+                players[1].Deploy(boards[1]);
+                players[1].Deploy(boards[1]);
+            }            
+            #endregion
+
+            Transition("Firing phase. Make ready " + players[0].name);
+
+            #region ShootingPhase
+            while (true)
+            {
+                players[0].Bombard(boards[1], boards[0]);
+
+                if (Core.CheckIfNoSymbol(boards[1], Config.symbolShip))
+                {
+                    Win(players[0], boards[1]);
+                }
+
+                Array.Reverse(players);
+                Array.Reverse(boards);
+                Transition("Make ready " + players[0].name);
+            }
+            #endregion 
         }
     }
 }

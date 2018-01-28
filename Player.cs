@@ -1,117 +1,84 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace bships
 {
     public class Player 
     {
         public string name;
-
-        public delegate void OnShootHandler(Player source, ActionEventArgs args);
-        public event OnShootHandler Fire;
-
-        public delegate void OnShipSubmitHandler(Player source, ActionEventArgs args);
-        public event OnShipSubmitHandler Deploy;
-
-        public delegate void OnDisplayHandler(bool mask);
-        public event OnDisplayHandler DisplayOwn;
-        public event OnDisplayHandler DisplayOpponent;
-
-
+        public delegate (bool, char) RulesDelegate(char targetSymbol, char proposedSymbol);
+        RulesDelegate RuleMethod = new RulesDelegate(Config.SymbolChangingRules);
         public Player(string name)
         { 
             this.name = name;
         }
 
-        public void Deployment()
-        {
-            for (int i=0; i<Constants.numOfShips; i++)
-            {
-                Console.WriteLine("This is our board admiral " + this.name);
-                OnDisplayOwn();
-                Console.WriteLine("What coord to deploy admiral?");                
-                OnActionDeclared(new ActionEventArgs(Constants.symShip));
-                // NotifyActionCompleted(Constants.symShip);
-                Console.Clear();
-            }
-
-            OnDisplayOwn();
-            Console.WriteLine("Admiral! Our deployment phase has finished.");
-            Console.ReadLine();
-
-        }
-
-        public void Bombardment()
+        public void Deploy(char[] board)
         {
             Console.WriteLine("This is our board admiral " + this.name);
-            OnDisplayOwn();
+            Core.DisplayBoard(board);
+
+            Console.WriteLine("What coord to deploy admiral?");
+
+            while (!Program.TryModifyTile(ref board[PromptCoord(Config.boardSize)], Config.symbolShip))
+            {
+                Console.WriteLine("This coordinate is occupied!");
+            }
+            Console.Clear();
+            Core.DisplayBoard(board);
+            Console.WriteLine("Deployment succesful.");
+            Console.ReadLine();
+            // Console.WriteLine("Admiral! Our deployment phase has finished.");
+        }
+
+        public void Bombard(char[] targetBoard, char[] ownBoard)
+        {
+            Console.WriteLine("This is our board admiral " + this.name);
+            Core.DisplayBoard(ownBoard);
             Console.WriteLine("This is shooting board");
-            OnDisplayOpponent();
+            Core.DisplayBoard(targetBoard, Config.symbolShip, Config.symbolVacant);
             Console.WriteLine("What coord to bombard admiral?");
 
-            var args = new ActionEventArgs(Constants.symHit);
-            OnActionDeclared(args);
+            while (!Program.TryModifyTile(ref targetBoard[PromptCoord(Config.boardSize)], Config.symbolHit))
+            {
+                Console.WriteLine("This coord we arleady shot at!");
+            }
+            
             Console.Clear();
-            OnDisplayOpponent();
-            NotifyActionCompleted(args.symbol);
+            Core.DisplayBoard(targetBoard, Config.symbolShip, Config.symbolVacant);
+            //Console.WriteLine("Spang on target");
             Console.ReadLine();
         }
 
-        private void NotifyActionCompleted(char symbol)
+        public static int PromptCoord(int bound)
         {
-            switch (symbol)
-            {
-                case Constants.symMiss:
-                    Console.WriteLine("Massive barrage missed the target.");
-                    break;
+            string rawInput = Console.ReadLine();
+            string[] rawXY;
+            int X = -1, Y = -1;
 
-                case Constants.symHit:
-                    Console.WriteLine("Spang on the target!");
-                    break;
-                
-                // case Constants.symShip:
-                //     Console.WriteLine("Ship deployment succeded");
-                //     break;
+            Regex regex = new Regex(@"\d+ \d+");
+            Match match = regex.Match(rawInput);
+            
+            if (match.Success)
+            {
+                rawXY =  match.Value.Split(" ");
+                (X, Y) = (Int32.Parse(rawXY[0]), Int32.Parse(rawXY[1]));
+            }
+            else
+            {
+                Console.WriteLine("Input not parsable, try passing two integers (\\d \\d)");
+                return PromptCoord(bound);
+            }
+
+            if (Y < bound && X < bound)
+            {
+                return X + Y*bound;
+            }
+            else
+            {
+                Console.WriteLine("Coordinate out of bounds");
+                return PromptCoord(bound);
             }
         }
-
-        // publisher
-        protected virtual void OnActionDeclared(ActionEventArgs args)
-        {
-            while (true)
-            {
-                args.coord = Prompter.PromptCoord();
-
-                switch (args.symbol)
-                {
-                    case Constants.symHit:
-                        Fire(this, args); 
-                        break;
-                    case Constants.symShip:  
-                        Deploy(this, args); 
-                        break;
-                    default:  
-                        break;
-                }
-
-                if (args.cancelled) 
-                {
-                    Console.WriteLine("Cant select used coord admiral. Try another one.");
-                }
-                else 
-                {
-                    break;
-                }
-            }
-        }
-
-        protected virtual void OnDisplayOwn()
-        {
-            DisplayOwn(false);
-        }
-        protected virtual void OnDisplayOpponent()
-        {
-            DisplayOpponent(true);
-        }
-
     }
 }
